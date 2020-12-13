@@ -459,6 +459,8 @@ void LegitAimbot(struct usercmd_s* cmd)
 
 	float flAccuracy = cvar.legit[g_Local.weapon.m_iWeaponID].accuracy;
 
+	float flSilent = cvar.legit[g_Local.weapon.m_iWeaponID].silent / 100;
+
 	Vector vecFOV = {};
 	{
 		QAngle QAngles = cmd->viewangles + g_Local.vPunchangle;
@@ -512,6 +514,32 @@ void LegitAimbot(struct usercmd_s* cmd)
 		g_Engine.GetViewAngles(QMyAngles);
 
 		VectorAngles(vAimOriginLegit - g_Local.vEye, QAimAngles);
+		
+		if (flSilent > 0 && flSilent <= 1 && CanAttack())
+		{
+			QAngle QAngleSilent = QAimAngles;
+
+			QAngleSilent += g_Local.vPunchangle;
+
+			QAngleSilent.Normalize();
+
+			GetSpreadOffset(g_Local.weapon.random_seed, 1, QAngleSilent, QAngleSilent);
+
+			Vector vecPsilentFOV;
+			QAngleSilent.AngleVectors(&vecPsilentFOV, NULL, NULL);
+			vecPsilentFOV.Normalize();
+			float fov = vecPsilentFOV.AngleBetween(vAimOriginLegit - g_Local.vEye);
+
+			if (fov <= flSilent)
+			{
+				cmd->buttons |= IN_ATTACK;
+
+				MakeAngle(QAngleSilent, cmd);
+
+				dwBlockAttack = GetTickCount();
+				return;
+			}
+		}
 
 		QNewAngles[0] = QAimAngles[0] - g_Local.vPunchangle[0] * flRecoilCompensationPitch;
 		QNewAngles[1] = QAimAngles[1] - g_Local.vPunchangle[1] * flRecoilCompensationYaw;

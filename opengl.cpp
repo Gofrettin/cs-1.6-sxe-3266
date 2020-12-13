@@ -20,8 +20,6 @@ glBlendFunc_t       pglBlendFunc;
 glColor4f_t         pglColor4f;
 glReadPixels_t      pglReadPixels;
 
-int TexHandsIndex[4];
-
 void APIENTRY hooked_glBegin(GLenum mode)
 {
 	cl_entity_s* ent = g_Studio.GetCurrentEntity();
@@ -41,17 +39,6 @@ void APIENTRY hooked_glBegin(GLenum mode)
 	{
 		if (mode == GL_TRIANGLE_STRIP)
 			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
-	}
-	if (cvar.visual_skins_viewmodel_nohands && CheckDrawEngine() && View_Model)
-	{
-		GLint last_texture;
-		glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture);
-
-		for (unsigned int i = 0; i < 4; i++)
-		{
-			if (TexHandsIndex[i] && last_texture == TexHandsIndex[i])
-				return;
-		}
 	}
 	pglBegin(mode);
 }

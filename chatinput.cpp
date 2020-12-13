@@ -9,10 +9,10 @@ void DrawChatInputWindow(int buttonsize)
 {
 	if (bInputActive)
 	{
-		float radiusy = ImGui::GetIO().DisplaySize.y / 15;
+		extern float radiusy;
 		float y = ImGui::GetIO().DisplaySize.y -
 			radiusy * cos(M_PI * 2 * 0 / 360) -
-			buttonsize / 2 - 3 - 23;
+			buttonsize / 2 - 23 - 1;
 
 		ImGui::SetNextWindowPos(ImVec2(0, y), ImGuiCond_Always, ImVec2(0, 0.5));
 		ImGui::SetNextWindowSize(ImVec2(0, 0));

@@ -74,6 +74,7 @@ void InitEngine()
 				memcpy(&g_StudioModelRenderer, g_pStudioModelRenderer, sizeof(StudioModelRenderer_t));
 				g_pStudio->StudioCheckBBox = &StudioCheckBBox;
 				g_pStudio->StudioSetRemapColors = &StudioSetRemapColors;
+				g_pStudio->StudioDrawPoints = &StudioDrawPoints;
 				HookRendererFunction(StudioRenderModel);
 				HookRendererFunction(StudioRenderFinal);
 				HookRendererFunction(StudioRenderFinal_Hardware);

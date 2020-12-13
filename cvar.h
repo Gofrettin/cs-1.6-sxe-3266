@@ -35,6 +35,7 @@ public:
 		float recoil_compensation_after_shots_fired;
 		float block_attack_after_kill;
 		float accuracy;
+		float silent;
 		float fov;
 		float speed_in_attack;
 

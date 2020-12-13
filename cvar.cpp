@@ -98,6 +98,8 @@ void CVARlist::init()
 		AddCvarFloat(str, &cvar.legit[i].block_attack_after_kill); legit[i].block_attack_after_kill = 0.0;
 		sprintf(str, "legit[%d].accuracy", i);
 		AddCvarFloat(str, &cvar.legit[i].accuracy); legit[i].accuracy = 0.0;
+		sprintf(str, "legit[%d].silent", i);
+		AddCvarFloat(str, &cvar.legit[i].silent); legit[i].silent = 0.0;
 		sprintf(str, "legit[%d].fov", i);
 		AddCvarFloat(str, &cvar.legit[i].fov); legit[i].fov = 5.0;
 		sprintf(str, "legit[%d].speed_in_attack", i);

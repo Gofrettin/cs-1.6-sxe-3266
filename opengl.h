@@ -41,7 +41,6 @@ extern glBlendFunc_t        pglBlendFunc;
 extern glColor4f_t          pglColor4f;
 extern glReadPixels_t       pglReadPixels;
 
-extern int TexHandsIndex[4];
 void InitOpenGL();
 
 #endif

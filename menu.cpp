@@ -439,6 +439,9 @@ void MenuLegit1()
 		ImGui::Text("Maximum FOV");
 		SliderFloat("Maximum FOV##1", &cvar.legit[CheckWeapon(cvar.menu_legit_global_section, cvar.menu_legit_sub_section)].fov, 0.f, 180.f, "%.1f");
 		
+		ImGui::Text("Silent Attack Speed");
+		SliderFloat("Silent Attack Speed##1", &cvar.legit[CheckWeapon(cvar.menu_legit_global_section, cvar.menu_legit_sub_section)].silent, 0.f, 100.f, "%.0f");
+
 		ImGui::Text("Reaction Time");
 		SliderFloat("Reaction Time##1", &cvar.legit[CheckWeapon(cvar.menu_legit_global_section, cvar.menu_legit_sub_section)].reaction_time, 0.f, 1000.f, "%.0fms");
 		
@@ -1345,26 +1348,80 @@ void MenuKey()
 	HudKeyBind(cvar.misc_quick_change_key, "Quick Change Key");
 }
 
-int buttonangles[15] = { 180, 156, 132, 108, 84, 60, 36, 12, 348, 324, 300, 276, 252, 228, 204 };
+int buttonanglesmenu[15] = { 180, 156, 132, 108, 84, 60, 36, 12, 348, 324, 300, 276, 252, 228, 204 };
+int buttonanglesstatic[15] = { 180, 156, 132, 108, 84, 60, 36, 12, 348, 324, 300, 276, 252, 228, 204 };
+int buttonrotate[15] = { 180, 156, 132, 108, 84, 60, 36, 12, 348, 324, 300, 276, 252, 228, 204 };
+int checkangles[15] = { 180, 156, 132, 108, 84, 60, 36, 12, 348, 324, 300, 276, 252, 228, 204 };
+int buttonxend[15] = { 80, 74, 68, 62, 56, 50, 44, 38, 38, 44, 50, 56, 62, 68, 74 };
+int buttonyend[15] = { 80, 74, 68, 62, 56, 50, 44, 38, 38, 44, 50, 56, 62, 68, 74 };
+int buttonxstart[15] = { 80, 74, 68, 62, 56, 50, 44, 38, 38, 44, 50, 56, 62, 68, 74 };
+int buttonystart[15] = { 80, 74, 68, 62, 56, 50, 44, 38, 38, 44, 50, 56, 62, 68, 74 };
 int direction;
 bool changewindowfocus = true;
 float GifDelay[2048];
-int buttonminsize = 28;
+float radiusx;
+float radiusy;
+DWORD TickcountMenu;
+
+void LoadTextureImageMenu(char* image, int index)
+{
+	char filename[256];
+	int width, height;
+	sprintf(filename, "%s%s", hackdir, image);
+	GLint last_texture;
+	glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture);
+	if (texture_id[index])glDeleteTextures(1, &texture_id[index]);
+	GLuint glindex;
+	glGenTextures(1, &glindex);
+	texture_id[index] = glindex + 20000;
+	glBindTexture(GL_TEXTURE_2D, texture_id[index]);
+	unsigned char* soilimage = SOIL_load_image(filename, &width, &height, 0, SOIL_LOAD_RGBA);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, soilimage);
+	SOIL_free_image_data(soilimage);
+	glBindTexture(GL_TEXTURE_2D, last_texture);
+}
+
+void GetTextureMenu(char* itemname, int& index)
+{
+	int maxindex = index + 50;
+	char filedir[256];
+	sprintf(filedir, "%stexture/menu/%s\\*", hackdir, itemname);
+	WIN32_FIND_DATA fd;
+	HANDLE hFind = ::FindFirstFile(filedir, &fd);
+	if (hFind != INVALID_HANDLE_VALUE)
+	{
+		do
+		{
+			if (!(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+			{
+				if (index < maxindex)
+				{
+					char filename[256];
+					sprintf(filename, "texture/menu/%s/%s", itemname, fd.cFileName);
+					LoadTextureImageMenu(filename, index);
+
+					float delay;
+					if (sscanf(fd.cFileName, "%*s %*d %*s %f", &delay))
+						GifDelay[index] = delay;
+					index++;
+				}
+			}
+		} while (::FindNextFile(hFind, &fd));
+		::FindClose(hFind);
+	}
+}
 
 void DrawkeyBind(int buttonsize)
 {
-	float menusize = 1;
-	int index = 0;
-	static float showspeed = menusize;
-	EaseMenu(showspeed, index, menusize, 20, bShowMenu);
-	if (showspeed < menusize)
+	static float showspeed = 1;
+	EaseMenu(showspeed, 0, 1, 20, bShowMenu);
+	if (showspeed < 1)
 	{
-		int paddings = 1 + (2 * ImGui::GetIO().DisplaySize.y / 768);
-		int paddingbot = paddings + 3;
-		int radiusy = ImGui::GetIO().DisplaySize.y / 15;
 		int y = ImGui::GetIO().DisplaySize.y -
-			radiusy * cos(M_PI * 2 * 0 / 360) - 
-			buttonsize / 2 - paddingbot;
+			radiusy * cos(M_PI * 2 * 0 / 360) -
+			buttonsize / 2;
 
 		ImGui::SetNextWindowPos(ImVec2(0, y), ImGuiCond_Always, ImVec2(showspeed, 0.5));
 		ImGui::SetNextWindowSize(ImVec2(0, 0));
@@ -1394,7 +1451,7 @@ void DrawMenuChild(int total)
 	}
 	if (MenuTab == 1)
 	{
-		windowheight1 = 647;
+		windowheight1 = 685;
 		windowheight2 = 642;
 		windowheight3 = 23;
 		for (model_aim_select_t Model_Selected : Model_Aim_Select)
@@ -1632,84 +1689,35 @@ void DrawMenuChild(int total)
 	}
 }
 
-void LoadTextureImageMenu(char* image, int index)
+void ChangeAngle(int windowx, int windowy, int buttonx, int buttony, int& direction, int move, int* buttonangles, int angle)
 {
-	char filename[256];
-	int width, height;
-	sprintf(filename, "%s%s", hackdir, image);
-	GLint last_texture;
-	glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture);
-	if(texture_id[index])glDeleteTextures(1, &texture_id[index]);
-	GLuint glindex;
-	glGenTextures(1, &glindex);
-	texture_id[index] = glindex + 20000;
-	glBindTexture(GL_TEXTURE_2D, texture_id[index]);
-	unsigned char* soilimage = SOIL_load_image(filename, &width, &height, 0, SOIL_LOAD_RGBA);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, soilimage);
-	SOIL_free_image_data(soilimage);
-	glBindTexture(GL_TEXTURE_2D, last_texture);
-}
-
-void GetTextureMenu(char* itemname, int &index)
-{
-	int maxindex = index + 50;
-	char filedir[256];
-	sprintf(filedir, "%stexture/menu/%s\\*", hackdir, itemname);
-	WIN32_FIND_DATA fd;
-	HANDLE hFind = ::FindFirstFile(filedir, &fd);
-	if (hFind != INVALID_HANDLE_VALUE)
+	if (windowx == buttonx && windowy == buttony)
 	{
-		do
-		{
-			if (!(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
-			{
-				if (index < maxindex)
-				{
-					char filename[256];
-					sprintf(filename, "texture/menu/%s/%s", itemname, fd.cFileName);
-					LoadTextureImageMenu(filename, index);
-					
-					float delay;
-					if (sscanf(fd.cFileName, "%*s %*d %*s %f", &delay))
-						GifDelay[index] = delay;
-					index++;
-				}
-			}
-		} while (::FindNextFile(hFind, &fd));
-		::FindClose(hFind);
-	}
-}
-
-void ChangeAngle(int a, int b, int c, int d, int& e, int f, int* i, int j)
-{
-	if (a == c && b == d)
-	{
-		e = f;
+		direction = move;
 		for (unsigned int k = 0; k < 15; k++)
 		{
-			if(f == 1)
-				i[k] += j;
-			if (f == 2)
-				i[k] -= j;
+			if (move == 1)
+				buttonangles[k] += angle;
+			if (move == 2)
+				buttonangles[k] -= angle;
 		}
 	}
 }
 
-bool Checkpos(int a, int b, int c, int d, char* e, int f, int& g, int& h, int i)
+float xScreen(int angle)
 {
-	if (a == c && b == d)
-	{
-		sprintf(e, "menu%d", f);
-		g = i * ImGui::GetIO().DisplaySize.x / 1024;
-		h = i * ImGui::GetIO().DisplaySize.y / 768;
-		return true;
-	}
-	return false;
+	return ImGui::GetIO().DisplaySize.x / 2 - radiusx * sin(M_PI * 2 * angle / 360);
 }
 
-void Button(float posx, float posy, int* x, int* y, int sizex, int sizey, int& textures, int texturestart, int index, bool* focused, int maxindex)
+float yScreen(int angle, int sizebot)
+{
+	return ImGui::GetIO().DisplaySize.y -
+		radiusy * cos(M_PI * 2 * angle / 360) -
+		radiusy * cos(M_PI * 2 * 0 / 360) -
+		sizebot / 2;
+}
+
+void Button(float posx, float posy, int buttonsize, int sizex, int sizey, int& textures, int texturestart, int index, bool* focused, int maxindex)
 {
 	if (focused[index] || index == MenuTab)
 	{
@@ -1725,23 +1733,23 @@ void Button(float posx, float posy, int* x, int* y, int sizex, int sizey, int& t
 	}
 	else
 		textures = texturestart;
-	
+
 	if (ImGui::ImageButtonID(index, (GLuint*)texture_id[textures], ImVec2(sizex, sizey)))
 	{
-		ChangeAngle(posx, posy, x[1], y[1], direction, 1, buttonangles, 24);
-		ChangeAngle(posx, posy, x[2], y[2], direction, 1, buttonangles, 48);
-		ChangeAngle(posx, posy, x[3], y[3], direction, 1, buttonangles, 72);
-		ChangeAngle(posx, posy, x[4], y[4], direction, 1, buttonangles, 96);
-		ChangeAngle(posx, posy, x[5], y[5], direction, 1, buttonangles, 120);
-		ChangeAngle(posx, posy, x[6], y[6], direction, 1, buttonangles, 144);
-		ChangeAngle(posx, posy, x[7], y[7], direction, 1, buttonangles, 168);
-		ChangeAngle(posx, posy, x[8], y[8], direction, 2, buttonangles, 168);
-		ChangeAngle(posx, posy, x[9], y[9], direction, 2, buttonangles, 144);
-		ChangeAngle(posx, posy, x[10], y[10], direction, 2, buttonangles, 120);
-		ChangeAngle(posx, posy, x[11], y[11], direction, 2, buttonangles, 96);
-		ChangeAngle(posx, posy, x[12], y[12], direction, 2, buttonangles, 72);
-		ChangeAngle(posx, posy, x[13], y[13], direction, 2, buttonangles, 48);
-		ChangeAngle(posx, posy, x[14], y[14], direction, 2, buttonangles, 24);
+		ChangeAngle(posx, posy, xScreen(buttonanglesstatic[1]), yScreen(buttonanglesstatic[1], buttonsize), direction, 1, buttonanglesmenu, 24);
+		ChangeAngle(posx, posy, xScreen(buttonanglesstatic[2]), yScreen(buttonanglesstatic[2], buttonsize), direction, 1, buttonanglesmenu, 48);
+		ChangeAngle(posx, posy, xScreen(buttonanglesstatic[3]), yScreen(buttonanglesstatic[3], buttonsize), direction, 1, buttonanglesmenu, 72);
+		ChangeAngle(posx, posy, xScreen(buttonanglesstatic[4]), yScreen(buttonanglesstatic[4], buttonsize), direction, 1, buttonanglesmenu, 96);
+		ChangeAngle(posx, posy, xScreen(buttonanglesstatic[5]), yScreen(buttonanglesstatic[5], buttonsize), direction, 1, buttonanglesmenu, 120);
+		ChangeAngle(posx, posy, xScreen(buttonanglesstatic[6]), yScreen(buttonanglesstatic[6], buttonsize), direction, 1, buttonanglesmenu, 144);
+		ChangeAngle(posx, posy, xScreen(buttonanglesstatic[7]), yScreen(buttonanglesstatic[7], buttonsize), direction, 1, buttonanglesmenu, 168);
+		ChangeAngle(posx, posy, xScreen(buttonanglesstatic[8]), yScreen(buttonanglesstatic[8], buttonsize), direction, 2, buttonanglesmenu, 168);
+		ChangeAngle(posx, posy, xScreen(buttonanglesstatic[9]), yScreen(buttonanglesstatic[9], buttonsize), direction, 2, buttonanglesmenu, 144);
+		ChangeAngle(posx, posy, xScreen(buttonanglesstatic[10]), yScreen(buttonanglesstatic[10], buttonsize), direction, 2, buttonanglesmenu, 120);
+		ChangeAngle(posx, posy, xScreen(buttonanglesstatic[11]), yScreen(buttonanglesstatic[11], buttonsize), direction, 2, buttonanglesmenu, 96);
+		ChangeAngle(posx, posy, xScreen(buttonanglesstatic[12]), yScreen(buttonanglesstatic[12], buttonsize), direction, 2, buttonanglesmenu, 72);
+		ChangeAngle(posx, posy, xScreen(buttonanglesstatic[13]), yScreen(buttonanglesstatic[13], buttonsize), direction, 2, buttonanglesmenu, 48);
+		ChangeAngle(posx, posy, xScreen(buttonanglesstatic[14]), yScreen(buttonanglesstatic[14], buttonsize), direction, 2, buttonanglesmenu, 24);
 	}
 }
 
@@ -1777,81 +1785,41 @@ int steamindex = 1650;
 int settingsindex = 1750;
 int keyindex = 1700;
 
-float xScreen(int angle)
-{
-	int radiusx = ImGui::GetIO().DisplaySize.x / 4;
-	return ImGui::GetIO().DisplaySize.x / 2 - radiusx * sin(M_PI * 2 * angle / 360);
-}
-
-float yScreen(int angle, int sizebot)
-{
-	int paddings = 1 + (2 * ImGui::GetIO().DisplaySize.y / 768);
-	int paddingbot = paddings + 3;
-	int radiusy = ImGui::GetIO().DisplaySize.y / 15;
-	return ImGui::GetIO().DisplaySize.y -
-		radiusy * cos(M_PI * 2 * angle / 360) -
-		radiusy * cos(M_PI * 2 * 0 / 360) -
-		sizebot / 2 - paddingbot;
-}
-
 void DrawMenuButton(int posx, int posy, int sizex, int sizey, int index, int buttonsize)
 {
-	int angler[15] = { 180, 156, 132, 108, 84, 60, 36, 12, 348, 324, 300, 276, 252, 228, 204 };
-	int radiusx = ImGui::GetIO().DisplaySize.x / 4;
-	int radiusy = ImGui::GetIO().DisplaySize.y / 15;
-
-	int x[15], y[15];
-	for (unsigned int i = 0; i < 15; i++)
-	{
-		x[i] = xScreen(angler[i]);
-		y[i] = yScreen(angler[i], buttonsize);
-	}
-
-	int paddings = 1 + (2 * ImGui::GetIO().DisplaySize.y / 768);
-	static int padding[15] = { 6, 6, 5, 5, 4, 4, 3, 3, 3, 3, 4, 4, 5, 5, 6 };;
-	if (posx == x[0] && posy == y[0] || posx == x[1] && posy == y[1] || posx == x[14] && posy == y[14])
-		padding[index] = paddings + 3;
-	if (posx == x[2] && posy == y[2] || posx == x[13] && posy == y[13] || posx == x[3] && posy == y[3] || posx == x[12] && posy == y[12])
-		padding[index] = paddings + 2;
-	if (posx == x[4] && posy == y[4] || posx == x[11] && posy == y[11] || posx == x[5] && posy == y[5] || posx == x[10] && posy == y[10])
-		padding[index] = paddings + 1;
-	if (posx == x[6] && posy == y[6] || posx == x[9] && posy == y[9] || posx == x[7] && posy == y[7] || posx == x[8] && posy == y[8])
-		padding[index] = paddings;
-
+	int paddingx = sizex / 20, paddingy = sizey / 20;
 	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
 	ImVec2 frampadding = ImGui::GetStyle().FramePadding;
 	ImVec2 windowpadding = ImGui::GetStyle().WindowPadding;
-	ImGui::GetStyle().FramePadding = ImVec2(padding[index], padding[index]);
+	ImGui::GetStyle().FramePadding = ImVec2(paddingx, paddingy);
 	ImGui::GetStyle().WindowPadding = ImVec2(0, 0);
 	ImGui::SetNextWindowPos(ImVec2(posx, posy), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
-	ImGui::SetNextWindowSize(ImVec2(sizex + (padding[index] * 2), sizey + (padding[index] * 2)));
+	ImGui::SetNextWindowSize(ImVec2(sizex + paddingx * 2, sizey + paddingy * 2));
 	static bool focused[15];
 	if (focused[index])
-		ImGui::SetNextWindowFocus(); 
-	char str[256];
+		ImGui::SetNextWindowFocus();
+	char str[10];
 	sprintf(str, "menu%d", index);
 	ImGui::Begin(str, reinterpret_cast<bool*>(true), ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar);
 	{
-		if (index == 0)Button(posx, posy, x, y, sizex, sizey, rageindex, 1050, index, focused, ragemaxindex);
-		if (index == 1)Button(posx, posy, x, y, sizex, sizey, legitindex, 1100, index, focused, legitmaxindex);
-		if (index == 2)Button(posx, posy, x, y, sizex, sizey, modelindex, 1150, index, focused, modelmaxindex);
-		if (index == 3)Button(posx, posy, x, y, sizex, sizey, playerlistindex, 1200, index, focused, playerlistmaxindex);
-		if (index == 4)Button(posx, posy, x, y, sizex, sizey, spawnindex, 1250, index, focused, spawnmaxindex);
-		if (index == 5)Button(posx, posy, x, y, sizex, sizey, visual1index, 1300, index, focused, visual1maxindex);
-		if (index == 6)Button(posx, posy, x, y, sizex, sizey, visual2index, 1350, index, focused, visual2maxindex);
-		if (index == 7)Button(posx, posy, x, y, sizex, sizey, visual3index, 1400, index, focused, visual3maxindex);
-		if (index == 8)Button(posx, posy, x, y, sizex, sizey, visual4index, 1450, index, focused, visual4maxindex);
-		if (index == 9)Button(posx, posy, x, y, sizex, sizey, kzindex, 1500, index, focused, kzmaxindex);
-		if (index == 10)Button(posx, posy, x, y, sizex, sizey, routeindex, 1550, index, focused, routemaxindex);
-		if (index == 11)Button(posx, posy, x, y, sizex, sizey, snapshotindex, 1600, index, focused, snapshotmaxindex);
-		if (index == 12)Button(posx, posy, x, y, sizex, sizey, steamindex, 1650, index, focused, steammaxindex);
-		if (index == 13)Button(posx, posy, x, y, sizex, sizey, settingsindex, 1700, index, focused, settingsmaxindex);
-		if (index == 14)Button(posx, posy, x, y, sizex, sizey, keyindex, 1750, index, focused, keymaxindex);
+		if (index == 0)Button(posx, posy, buttonsize, sizex, sizey, rageindex, 1050, index, focused, ragemaxindex);
+		if (index == 1)Button(posx, posy, buttonsize, sizex, sizey, legitindex, 1100, index, focused, legitmaxindex);
+		if (index == 2)Button(posx, posy, buttonsize, sizex, sizey, modelindex, 1150, index, focused, modelmaxindex);
+		if (index == 3)Button(posx, posy, buttonsize, sizex, sizey, playerlistindex, 1200, index, focused, playerlistmaxindex);
+		if (index == 4)Button(posx, posy, buttonsize, sizex, sizey, spawnindex, 1250, index, focused, spawnmaxindex);
+		if (index == 5)Button(posx, posy, buttonsize, sizex, sizey, visual1index, 1300, index, focused, visual1maxindex);
+		if (index == 6)Button(posx, posy, buttonsize, sizex, sizey, visual2index, 1350, index, focused, visual2maxindex);
+		if (index == 7)Button(posx, posy, buttonsize, sizex, sizey, visual3index, 1400, index, focused, visual3maxindex);
+		if (index == 8)Button(posx, posy, buttonsize, sizex, sizey, visual4index, 1450, index, focused, visual4maxindex);
+		if (index == 9)Button(posx, posy, buttonsize, sizex, sizey, kzindex, 1500, index, focused, kzmaxindex);
+		if (index == 10)Button(posx, posy, buttonsize, sizex, sizey, routeindex, 1550, index, focused, routemaxindex);
+		if (index == 11)Button(posx, posy, buttonsize, sizex, sizey, snapshotindex, 1600, index, focused, snapshotmaxindex);
+		if (index == 12)Button(posx, posy, buttonsize, sizex, sizey, steamindex, 1650, index, focused, steammaxindex);
+		if (index == 13)Button(posx, posy, buttonsize, sizex, sizey, settingsindex, 1700, index, focused, settingsmaxindex);
+		if (index == 14)Button(posx, posy, buttonsize, sizex, sizey, keyindex, 1750, index, focused, keymaxindex);
 
 		if (ImGui::IsItemHovered() && !focused[index])
-		{
 			focused[index] = true;
-		}
 		if (!ImGui::IsItemHovered() && focused[index])
 		{
 			changewindowfocus = true;
@@ -1866,8 +1834,8 @@ void DrawMenuButton(int posx, int posy, int sizex, int sizey, int index, int but
 	if (focused[index])
 	{
 		char* tip[] = { "Rage", "Legit", "Model", "Player List", "Spawn", "Visual1", "Visual2", "Visual3", "Visual4", "KZ", "Route", "Snapshot", "Steam ID", "Settings", "Keys" };
-		ImGui::SetNextWindowFocus(); 
-		ImGui::SetNextWindowPos(ImVec2(posx, posy - sizey / 2 - padding[index]), ImGuiCond_Always, ImVec2(0.5f, 1.0f));
+		ImGui::SetNextWindowFocus();
+		ImGui::SetNextWindowPos(ImVec2(posx, posy - sizey / 2 - paddingy), ImGuiCond_Always, ImVec2(0.5f, 1.0f));
 		ImGui::SetNextWindowSize(ImVec2(0, 0));
 		ImGui::Begin("tooltip", reinterpret_cast<bool*>(true), ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs);
 		{
@@ -1917,123 +1885,84 @@ void GetTextureMenu()
 	LoadTextureImageMenu("texture/radar/greensound.png", GREENSOUND);
 }
 
-void DrawMenuWindow()
+bool Checkpos(int a, int b, int c, int d, char* e, int f, int& g, int& h, int i)
 {
-	if (loadtexturemenu)
-		GetTextureMenu(), loadtexturemenu = false;
+	if (a == c && b == d)
+	{
+		sprintf(e, "menu%d", f);
+		g = i * ImGui::GetIO().DisplaySize.x / 1024;
+		h = i * ImGui::GetIO().DisplaySize.y / 768;
+		return true;
+	}
+	return false;
+}
 
-	char windowname[15][256];
-
-	static int buttonrotate[15] = { 180, 156, 132, 108, 84, 60, 36, 12, 348, 324, 300, 276, 252, 228, 204 };
-	static int checkangles[15] = { 180, 156, 132, 108, 84, 60, 36, 12, 348, 324, 300, 276, 252, 228, 204 };
-	static int buttonx[15] = { 80, 74, 68, 62, 56, 50, 44, 38, 38, 44, 50, 56, 62, 68, 74 };
-	static int buttony[15] = { 80, 74, 68, 62, 56, 50, 44, 38, 38, 44, 50, 56, 62, 68, 74 };
-	static int buttonx2[15] = { 80, 74, 68, 62, 56, 50, 44, 38, 38, 44, 50, 56, 62, 68, 74 };
-	static int buttony2[15] = { 80, 74, 68, 62, 56, 50, 44, 38, 38, 44, 50, 56, 62, 68, 74 };
-
-	int angler[15] = { 180, 156, 132, 108, 84, 60, 36, 12, 348, 324, 300, 276, 252, 228, 204 };
-	int xx[15], yy[15];
-
-	int buttonsizex = 80;
-	int buttonsizey = 80;
-
-	int buttonsizetop = 38 * ImGui::GetIO().DisplaySize.y / 768;
-	int buttonsizebot = 80 * ImGui::GetIO().DisplaySize.y / 768;
-	static int sizetop = buttonsizetop;
-	static int sizebot = buttonsizetop;
+void CalcButtonSize(int& sizetop, int& sizebot, int buttonsizetop, int buttonsizebot)
+{
 	for (unsigned int i = 0; i < 2; i++)
 	{
-		if (sizetop < buttonsizetop)
+		if (sizetop < buttonsizetop + buttonsizetop / 20 * 2)
 			sizetop += 1;
-		if (sizetop > buttonsizetop)
-		{
-			if (buttonsizetop > buttonminsize)
-				sizetop -= 1;
-			else
-				sizetop = buttonminsize;
-		}
+		if (sizetop > buttonsizetop + buttonsizetop / 20 * 2)
+			sizetop -= 1;
 
-		if (sizebot < buttonsizebot)
+		if (sizebot < buttonsizebot + buttonsizebot / 20 * 2)
 			sizebot += 1;
-		if (sizebot > buttonsizebot)
-		{
-			if (buttonsizebot > buttonminsize)
-				sizebot -= 1;
-			else
-				sizebot = buttonminsize;
-		}
+		if (sizebot > buttonsizebot + buttonsizebot / 20 * 2)
+			sizebot -= 1;
 	}
+}
 
-	DrawChatInputWindow(sizebot);
-
+void CheckPosition(int sizebot, char windowname[15][10])
+{
 	for (unsigned int i = 0; i < 15; i++)
 	{
-		xx[i] = xScreen(angler[i]);
-		yy[i] = yScreen(angler[i], sizebot);
+		if (Checkpos(xScreen(checkangles[i]), yScreen(checkangles[i], sizebot), xScreen(buttonanglesstatic[0]), yScreen(buttonanglesstatic[0], sizebot), windowname[14], i, buttonxstart[i], buttonystart[i], 80) && MenuTab != i) MenuTab = i;
+		Checkpos(xScreen(checkangles[i]), yScreen(checkangles[i], sizebot), xScreen(buttonanglesstatic[1]), yScreen(buttonanglesstatic[1], sizebot), windowname[12], i, buttonxstart[i], buttonystart[i], 74);
+		Checkpos(xScreen(checkangles[i]), yScreen(checkangles[i], sizebot), xScreen(buttonanglesstatic[2]), yScreen(buttonanglesstatic[2], sizebot), windowname[10], i, buttonxstart[i], buttonystart[i], 68);
+		Checkpos(xScreen(checkangles[i]), yScreen(checkangles[i], sizebot), xScreen(buttonanglesstatic[3]), yScreen(buttonanglesstatic[3], sizebot), windowname[8], i, buttonxstart[i], buttonystart[i], 62);
+		Checkpos(xScreen(checkangles[i]), yScreen(checkangles[i], sizebot), xScreen(buttonanglesstatic[4]), yScreen(buttonanglesstatic[4], sizebot), windowname[6], i, buttonxstart[i], buttonystart[i], 56);
+		Checkpos(xScreen(checkangles[i]), yScreen(checkangles[i], sizebot), xScreen(buttonanglesstatic[5]), yScreen(buttonanglesstatic[5], sizebot), windowname[4], i, buttonxstart[i], buttonystart[i], 50);
+		Checkpos(xScreen(checkangles[i]), yScreen(checkangles[i], sizebot), xScreen(buttonanglesstatic[6]), yScreen(buttonanglesstatic[6], sizebot), windowname[2], i, buttonxstart[i], buttonystart[i], 44);
+		Checkpos(xScreen(checkangles[i]), yScreen(checkangles[i], sizebot), xScreen(buttonanglesstatic[7]), yScreen(buttonanglesstatic[7], sizebot), windowname[0], i, buttonxstart[i], buttonystart[i], 38);
+		Checkpos(xScreen(checkangles[i]), yScreen(checkangles[i], sizebot), xScreen(buttonanglesstatic[8]), yScreen(buttonanglesstatic[8], sizebot), windowname[1], i, buttonxstart[i], buttonystart[i], 38);
+		Checkpos(xScreen(checkangles[i]), yScreen(checkangles[i], sizebot), xScreen(buttonanglesstatic[9]), yScreen(buttonanglesstatic[9], sizebot), windowname[3], i, buttonxstart[i], buttonystart[i], 44);
+		Checkpos(xScreen(checkangles[i]), yScreen(checkangles[i], sizebot), xScreen(buttonanglesstatic[10]), yScreen(buttonanglesstatic[10], sizebot), windowname[5], i, buttonxstart[i], buttonystart[i], 50);
+		Checkpos(xScreen(checkangles[i]), yScreen(checkangles[i], sizebot), xScreen(buttonanglesstatic[11]), yScreen(buttonanglesstatic[11], sizebot), windowname[7], i, buttonxstart[i], buttonystart[i], 56);
+		Checkpos(xScreen(checkangles[i]), yScreen(checkangles[i], sizebot), xScreen(buttonanglesstatic[12]), yScreen(buttonanglesstatic[12], sizebot), windowname[9], i, buttonxstart[i], buttonystart[i], 62);
+		Checkpos(xScreen(checkangles[i]), yScreen(checkangles[i], sizebot), xScreen(buttonanglesstatic[13]), yScreen(buttonanglesstatic[13], sizebot), windowname[11], i, buttonxstart[i], buttonystart[i], 68);
+		Checkpos(xScreen(checkangles[i]), yScreen(checkangles[i], sizebot), xScreen(buttonanglesstatic[14]), yScreen(buttonanglesstatic[14], sizebot), windowname[13], i, buttonxstart[i], buttonystart[i], 74);
 	}
+}
 
-	for (unsigned int i = 0; i < 15; i++)
-	{
-		int xpos = xScreen(checkangles[i]);
-		int ypos = yScreen(checkangles[i], sizebot);
-
-		if (Checkpos(xpos, ypos, xx[0], yy[0], windowname[14], i, buttonsizex, buttonsizey, 80) && MenuTab != i) MenuTab = i;
-		Checkpos(xpos, ypos, xx[1], yy[1], windowname[12], i, buttonsizex, buttonsizey, 74);
-		Checkpos(xpos, ypos, xx[2], yy[2], windowname[10], i, buttonsizex, buttonsizey, 68);
-		Checkpos(xpos, ypos, xx[3], yy[3], windowname[8], i, buttonsizex, buttonsizey, 62);
-		Checkpos(xpos, ypos, xx[4], yy[4], windowname[6], i, buttonsizex, buttonsizey, 56);
-		Checkpos(xpos, ypos, xx[5], yy[5], windowname[4], i, buttonsizex, buttonsizey, 50);
-		Checkpos(xpos, ypos, xx[6], yy[6], windowname[2], i, buttonsizex, buttonsizey, 44);
-		Checkpos(xpos, ypos, xx[7], yy[7], windowname[0], i, buttonsizex, buttonsizey, 38);
-		Checkpos(xpos, ypos, xx[8], yy[8], windowname[1], i, buttonsizex, buttonsizey, 38);
-		Checkpos(xpos, ypos, xx[9], yy[9], windowname[3], i, buttonsizex, buttonsizey, 44);
-		Checkpos(xpos, ypos, xx[10], yy[10], windowname[5], i, buttonsizex, buttonsizey, 50);
-		Checkpos(xpos, ypos, xx[11], yy[11], windowname[7], i, buttonsizex, buttonsizey, 56);
-		Checkpos(xpos, ypos, xx[12], yy[12], windowname[9], i, buttonsizex, buttonsizey, 62);
-		Checkpos(xpos, ypos, xx[13], yy[13], windowname[11], i, buttonsizex, buttonsizey, 68);
-		Checkpos(xpos, ypos, xx[14], yy[14], windowname[13], i, buttonsizex, buttonsizey, 74);
-
-		buttonx2[i] = buttonsizex;
-		buttony2[i] = buttonsizey;
-	}
-	static DWORD Tickcount;
-	if (GetTickCount() - Tickcount > 0)
+void RotateMenu()
+{
+	if (GetTickCount() - TickcountMenu > 0)
 	{
 		for (unsigned int i = 0; i < 15; i++)
 		{
 			for (unsigned int k = 0; k < 10; k++)
 			{
-				if (buttonrotate[i] < buttonangles[i])
+				if (buttonrotate[i] < buttonanglesmenu[i])
 					buttonrotate[i] += 1;
 
-				if (buttonrotate[i] > buttonangles[i])
+				if (buttonrotate[i] > buttonanglesmenu[i])
 					buttonrotate[i] -= 1;
 			}
 			for (unsigned int x = 0; x < 3; x++)
 			{
-				if (buttonx[i] < buttonx2[i])
-					buttonx[i] += 2;
+				if (buttonxend[i] < buttonxstart[i])
+					buttonxend[i] += 2;
+				if (buttonxend[i] > buttonxstart[i])
+					buttonxend[i] -= 2;
 
-				if (buttonx[i] > buttonx2[i])
-				{
-					if (buttonx2[i] > buttonminsize)
-						buttonx[i] -= 2;
-					else
-						buttonx[i] = buttonminsize;
-				}
-
-				if (buttony[i] < buttony2[i])
-					buttony[i] += 2;
-				if (buttony[i] > buttony2[i])
-				{
-					if (buttony2[i] > buttonminsize)
-						buttony[i] -= 2;
-					else
-						buttony[i] = buttonminsize;
-				}
+				if (buttonyend[i] < buttonystart[i])
+					buttonyend[i] += 2;
+				if (buttonyend[i] > buttonystart[i])
+					buttonyend[i] -= 2;
 			}
 		}
-		Tickcount = GetTickCount();
+		TickcountMenu = GetTickCount();
 	}
 
 	for (unsigned int i = 0; i < 15; i++)
@@ -2065,17 +1994,55 @@ void DrawMenuWindow()
 			}
 		}
 	}
-	int radiusx = ImGui::GetIO().DisplaySize.x / 4;
-	int radiusy = ImGui::GetIO().DisplaySize.y / 15;
-	int paddings = 1 + (2 * ImGui::GetIO().DisplaySize.y / 768);
-	int paddingbot = paddings + 3;
-	int yytop = ImGui::GetIO().DisplaySize.y -
+}
+
+int TopButton(int sizebot, int sizetop)
+{
+	return ImGui::GetIO().DisplaySize.y -
 		radiusy * cos(M_PI * 2 * 12 / 360) -
 		radiusy * cos(M_PI * 2 * 0 / 360) -
-		sizebot / 2 - paddings -
-		sizetop / 2 - paddingbot;
-	int yybot = ImGui::GetIO().DisplaySize.y;
-	int total = yybot - yytop;
+		sizebot / 2 -
+		sizetop / 2;
+}
+
+int BotButton()
+{
+	return ImGui::GetIO().DisplaySize.y;
+}
+
+void DrawMenuWindow()
+{
+	if (loadtexturemenu)
+		GetTextureMenu(), loadtexturemenu = false;
+
+	char windowname[15][10];
+
+	radiusx = ImGui::GetIO().DisplaySize.x / 4;
+	radiusy = ImGui::GetIO().DisplaySize.y / 15;
+
+	int buttonsizetop = 38 * ImGui::GetIO().DisplaySize.y / 768;
+	int buttonsizebot = 80 * ImGui::GetIO().DisplaySize.y / 768;
+	static int sizetop = buttonsizetop;
+	static int sizebot = buttonsizetop;
+	CalcButtonSize(sizetop, sizebot, buttonsizetop, buttonsizebot);
+	CheckPosition(sizebot, windowname);
+	RotateMenu();
+
+	int total = BotButton() - TopButton(sizebot, sizetop);
+	static float showspeed = total;
+	EaseMenu(showspeed, 2, total, 20, bShowMenu);
+	if (showspeed < total)
+	{
+		for (unsigned int i = 0; i < 15; i++)
+		{
+			int x = xScreen(buttonrotate[i]);
+			int y = yScreen(buttonrotate[i], sizebot);
+			DrawMenuButton(x, y + showspeed, buttonxend[i], buttonyend[i], i, sizebot);
+		}
+	}
+	DrawMenuChild(total);
+	DrawkeyBind(sizebot);
+	DrawChatInputWindow(sizebot);
 
 	static bool menu = bShowMenu;
 	if (menu != bShowMenu)
@@ -2084,24 +2051,6 @@ void DrawMenuWindow()
 			changewindowfocus = true;
 		menu = bShowMenu;
 	}
-	float menusize = total;
-	int index = 2;
-	static float showspeed = menusize;
-	EaseMenu(showspeed, index, menusize, 20, bShowMenu);
-
-	if (showspeed < total)
-	{
-		for (unsigned int i = 0; i < 15; i++)
-		{
-			int x = xScreen(buttonrotate[i]);
-			int y = yScreen(buttonrotate[i], sizebot);
-			DrawMenuButton(x, y + showspeed, buttonx[i], buttony[i], i, sizebot);
-		}
-	}
-
-	DrawMenuChild(total);
-	DrawkeyBind(sizebot);
-	
 	if (changewindowfocus && bShowMenu && showspeed < total)
 	{
 		for (unsigned int i = 0; i < 15; i++)

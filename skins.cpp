@@ -536,22 +536,6 @@ void ReplaceTextureIndex(char* texturename, int textureindex, int restoreindex, 
 	}
 }
 
-void ScanForTextureIndex(cl_entity_s* ent, char* texturename, int& index)
-{
-	if (ent && ent->model && strstr(ent->model->name, "v_") && cvar.visual_skins_viewmodel_nohands)
-	{
-		index = 0;
-		studiohdr_t* pStudioHeader = (studiohdr_t*)g_Studio.Mod_Extradata(ent->model);
-		mstudiotexture_t* ptexture = (mstudiotexture_t*)((byte*)pStudioHeader + pStudioHeader->textureindex);
-
-		for (unsigned int i = 0; i < pStudioHeader->numtextures; i++)
-		{
-			if (strstr(ptexture[i].name, texturename))
-				index = ptexture[i].index;
-		}
-	}
-}
-
 void SetSkins(struct cl_entity_s* ent)
 {
 	static char CurrentServerName[256];
@@ -569,11 +553,6 @@ void SetSkins(struct cl_entity_s* ent)
 	}
 
 	if (loadtexturemodel)GetTextureModel(), loadtexturemodel = false;
-
-	ScanForTextureIndex(ent, "view_glove", TexHandsIndex[0]);
-	ScanForTextureIndex(ent, "view_finger", TexHandsIndex[1]);
-	ScanForTextureIndex(ent, "view_skin", TexHandsIndex[2]);
-	ScanForTextureIndex(ent, "hands", TexHandsIndex[3]);
 	
 	int index = 1;
 	ReplaceTextureIndex("ARTIC_Working1", PLAYER1, index, "arctic", 1, cvar.visual_skins_player), index++;
