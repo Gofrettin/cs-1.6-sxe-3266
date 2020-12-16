@@ -13,7 +13,6 @@
   <ItemGroup>
     <ClInclude Include="bass\bass.h" />
     <ClInclude Include="bass\dll.h" />
-    <ClInclude Include="color.h" />
     <ClInclude Include="image.h" />
     <ClInclude Include="imgui\image_DXT.h" />
     <ClInclude Include="imgui\image_helper.h" />
@@ -39,7 +38,6 @@
   <ItemGroup>
     <ClCompile Include="bass\dll.cpp" />
     <ClCompile Include="bass\dll_image.cpp" />
-    <ClCompile Include="color.cpp" />
     <ClCompile Include="image.cpp" />
     <ClCompile Include="imgui\image_DXT.cpp" />
     <ClCompile Include="imgui\image_helper.cpp" />

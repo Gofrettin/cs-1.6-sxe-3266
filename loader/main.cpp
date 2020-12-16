@@ -7,24 +7,38 @@ bool hovered;
 #define CHECKMARK			    3
 #define WRONG			        4
 #define MENUBACK			    5
+#define MENUBACK0			    5
+#define MENUBACK1			    6
+#define MENUBACK2			    7
+#define MENUBACK3			    8
+#define MENUBACK4			    9
+#define MENUBACK5			    10
+#define MENUBACK6			    11
+#define MENUBACK7			    12
+#define MENUBACK8			    13
+#define MENUBACK9			    14
+#define MENUBACK10			    15
+#define MENUBACK11			    16
+#define MENUBACK12			    17
+#define MENUBACK13			    18
+#define MENUBACK14			    19
 
 GLuint texture_id[1024];
-GLFWimage icons[1];
+GLFWimage icons;
 
-void MenuImage(int from, int to)
+void MenuImage()
 {
-	static float RotateImage = 0.0f;
-	static DWORD Tickcount = 0;
-	if (GetTickCount() - Tickcount > 0)
+	static DWORD Tickcount;
+	static int texture = MENUBACK0;
+	if (GetTickCount() - Tickcount >= 0.03 * 1000)
 	{
-		RotateImage += 0.001f;
+		if (texture < MENUBACK14)
+			texture++;
+		else
+			texture = MENUBACK0;
 		Tickcount = GetTickCount();
 	}
-
-	if (RotateImage > 1.0f || RotateImage < -1.0f)
-		RotateImage = 0.0f;
-
-	ImGui::GetWindowDrawList()->AddImage((GLuint*)texture_id[MENUBACK], ImVec2(ImGui::GetCurrentWindow()->Pos.x + 6, ImGui::GetCurrentWindow()->Pos.y + from), ImVec2(ImGui::GetCurrentWindow()->Pos.x + ImGui::GetCurrentWindow()->Size.x - 6, ImGui::GetCurrentWindow()->Pos.y + to), ImVec2(0.0f + RotateImage, 0), ImVec2(1.0f + RotateImage - 0.9f, 1));
+	ImGui::GetWindowDrawList()->AddImage((GLuint*)texture_id[texture], ImVec2(ImGui::GetCurrentWindow()->Pos.x + 6, ImGui::GetCurrentWindow()->Pos.y + 27), ImVec2(ImGui::GetCurrentWindow()->Pos.x + ImGui::GetCurrentWindow()->Size.x - 6, ImGui::GetCurrentWindow()->Pos.y + ImGui::GetCurrentWindow()->Size.y - 8));
 }
 
 void LoadTextureMemory(const unsigned char* image, int index, int size)
@@ -57,10 +71,10 @@ void Menu()
 	hovered = false; 
 	static bool bShowMenu = true;
 	ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
-	ImGui::SetNextWindowSize(ImVec2(312, 305));
+	ImGui::SetNextWindowSize(ImVec2(312, 277));
 	ImGui::Begin("##menu", &bShowMenu, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize);
 	{
-		MenuImage(10, 204);
+		MenuImage();
 		static int sucess = 0;
 		static int fail = 0;
 		if (sucess)sucess--;
@@ -68,7 +82,6 @@ void Menu()
 		GLuint texture = texture_id[INJECTOR];
 		if (sucess) texture = texture_id[CHECKMARK];
 		if (fail) texture = texture_id[WRONG];
-		ImGui::Separator();
 		ImVec2 LastSapcing = ImGui::GetStyle().ItemSpacing;
 		ImGui::GetStyle().ItemSpacing.x = 0;
 		if (ImGui::ImageButton((GLuint*)texture, ImVec2(142, 144)))
@@ -125,90 +138,84 @@ void Menu()
 			ImGui::PopTextWrapPos();
 			ImGui::EndTooltip();
 		}
-		ImGui::Separator();
-		ImGui::BeginChild("Misc1", ImVec2(300, 104), true);
+		if (ImGui::ArrowButtonDouble("##left", ImGuiDir_Left, 90))
+			backwards = true;
+		if (ImGui::IsItemHovered())
 		{
-			if (ImGui::ArrowButtonDouble("##left", ImGuiDir_Left, 86))
-				backwards = true;
-			if (ImGui::IsItemHovered())
-			{
-				hovered = true;
-				ImGui::BeginTooltip();
-				ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-				ImGui::TextUnformatted("Radio Channel Back");
-				ImGui::PopTextWrapPos();
-				ImGui::EndTooltip();
-			}
-			ImGui::SameLine();
-			if (gui_radio)
-			{
-				if (ImGui::SquareButton("##square", 116))
-					gui_radio = !gui_radio;
-			}
-			else 
-			{
-				if (ImGui::ArrowButton("##right", ImGuiDir_Right, 116))
-					gui_radio = !gui_radio;
-			}
-			
-			if (ImGui::IsItemHovered())
-			{
-				hovered = true;
-				ImGui::BeginTooltip();
-				ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-				ImGui::TextUnformatted("Radio Channel Play/Pause");
-				ImGui::PopTextWrapPos();
-				ImGui::EndTooltip();
-			}
-			ImGui::SameLine();
-			if (ImGui::ArrowButtonDouble("##right", ImGuiDir_Right, 86))
-				forwards = true;
-			if (ImGui::IsItemHovered())
-			{
-				hovered = true;
-				ImGui::BeginTooltip();
-				ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-				ImGui::TextUnformatted("Radio Channel Forward");
-				ImGui::PopTextWrapPos();
-				ImGui::EndTooltip();
-			}
-			ImGui::GetStyle().ItemSpacing = LastSapcing;
-			ImGui::PushItemWidth(-1);
-			const char* listbox_radio[] = { "PulseEDM Dance Music", "Hard Style", "Big Fm", "Big Fm Deutsch Rap", "Radio Record", "Record Dubstep", "Record Hardstyle", "Record Dancecore", "Anison FM", "Nrk MP3" };
-			if (ImGui::Combo("Radio Channel", &gui_radio_channel, listbox_radio, IM_ARRAYSIZE(listbox_radio), 10))channelchange = true;
-			if (ImGui::IsItemHovered())
-			{
-				hovered = true;
-				ImGui::BeginTooltip();
-				ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-				ImGui::TextUnformatted("Select Radio Channel");
-				ImGui::PopTextWrapPos();
-				ImGui::EndTooltip();
-			}
-			ImGui::SliderFloat("Radio Volume", &gui_radio_volume, 0.f, 100.f, "Radio Volume: %.f");
-			if (ImGui::IsItemHovered())
-			{
-				hovered = true;
-				ImGui::BeginTooltip();
-				ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-				ImGui::TextUnformatted("Adjust Radio Volume");
-				ImGui::PopTextWrapPos();
-				ImGui::EndTooltip();
-			}
-			if (ImGui::InputText("Input Text", zstationstype, IM_ARRAYSIZE(zstationstype), ImGuiInputTextFlags_EnterReturnsTrue))channeltype = true;
-			if (ImGui::IsItemHovered())
-			{
-				hovered = true;
-				ImGui::BeginTooltip();
-				ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-				ImGui::TextUnformatted("Input Link To Radio Stream");
-				ImGui::PopTextWrapPos();
-				ImGui::EndTooltip();
-			}
-			ImGui::PopItemWidth();
+			hovered = true;
+			ImGui::BeginTooltip();
+			ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+			ImGui::TextUnformatted("Radio Channel Back");
+			ImGui::PopTextWrapPos();
+			ImGui::EndTooltip();
 		}
-		ImGui::EndChild();
-		ImGui::Separator();
+		ImGui::SameLine();
+		if (gui_radio)
+		{
+			if (ImGui::SquareButton("##square", 120))
+				gui_radio = !gui_radio;
+		}
+		else
+		{
+			if (ImGui::ArrowButton("##right", ImGuiDir_Right, 120))
+				gui_radio = !gui_radio;
+		}
+
+		if (ImGui::IsItemHovered())
+		{
+			hovered = true;
+			ImGui::BeginTooltip();
+			ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+			ImGui::TextUnformatted("Radio Channel Play/Pause");
+			ImGui::PopTextWrapPos();
+			ImGui::EndTooltip();
+		}
+		ImGui::SameLine();
+		if (ImGui::ArrowButtonDouble("##right", ImGuiDir_Right, 90))
+			forwards = true;
+		if (ImGui::IsItemHovered())
+		{
+			hovered = true;
+			ImGui::BeginTooltip();
+			ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+			ImGui::TextUnformatted("Radio Channel Forward");
+			ImGui::PopTextWrapPos();
+			ImGui::EndTooltip();
+		}
+		ImGui::GetStyle().ItemSpacing = LastSapcing;
+		ImGui::PushItemWidth(-1);
+		const char* listbox_radio[] = { "PulseEDM Dance Music", "Hard Style", "Big Fm", "Big Fm Deutsch Rap", "Radio Record", "Record Dubstep", "Record Hardstyle", "Record Dancecore", "Anison FM", "Nrk MP3" };
+		if (ImGui::Combo("Radio Channel", &gui_radio_channel, listbox_radio, IM_ARRAYSIZE(listbox_radio), 10))channelchange = true;
+		if (ImGui::IsItemHovered())
+		{
+			hovered = true;
+			ImGui::BeginTooltip();
+			ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+			ImGui::TextUnformatted("Select Radio Channel");
+			ImGui::PopTextWrapPos();
+			ImGui::EndTooltip();
+		}
+		ImGui::SliderFloat("Radio Volume", &gui_radio_volume, 0.f, 100.f, "Radio Volume: %.f");
+		if (ImGui::IsItemHovered())
+		{
+			hovered = true;
+			ImGui::BeginTooltip();
+			ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+			ImGui::TextUnformatted("Adjust Radio Volume");
+			ImGui::PopTextWrapPos();
+			ImGui::EndTooltip();
+		}
+		if (ImGui::InputText("Input Text", zstationstype, IM_ARRAYSIZE(zstationstype), ImGuiInputTextFlags_EnterReturnsTrue))channeltype = true;
+		if (ImGui::IsItemHovered())
+		{
+			hovered = true;
+			ImGui::BeginTooltip();
+			ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+			ImGui::TextUnformatted("Input Link To Radio Stream");
+			ImGui::PopTextWrapPos();
+			ImGui::EndTooltip();
+		}
+		ImGui::PopItemWidth();
 	}
 	ImGui::End();
 	if (!bShowMenu)
@@ -226,7 +233,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	InitRadio();
 	int screenW = GetSystemMetrics(SM_CXSCREEN);
 	int screenH = GetSystemMetrics(SM_CYSCREEN);
-	int screensizex = 296, screensizey = 267;
+	int screensizex = 296, screensizey = 239;
 	int centrx = (screenW / 2) - (screensizex / 2);
 	int centry = (screenH / 2) - (screensizey / 2);
 	if (!glfwInit())
@@ -234,9 +241,9 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	GLFWwindow* window = glfwCreateWindow(screensizex, screensizey, "loader", NULL, NULL);
 	if (window == NULL)
 		return 1; 
-	icons[0].pixels = SOIL_load_image_from_memory(injector, 26315, &icons[0].width, &icons[0].height, 0, SOIL_LOAD_RGBA);
-	glfwSetWindowIcon(window, 1, icons);
-	SOIL_free_image_data(icons[0].pixels);
+	icons.pixels = SOIL_load_image_from_memory(injector, 26315, &icons.width, &icons.height, 0, SOIL_LOAD_RGBA);
+	glfwSetWindowIcon(window, 1, &icons);
+	SOIL_free_image_data(icons.pixels);
 	glfwSetWindowPos(window, centrx, centry);
 	HWND hWnd = glfwGetWin32Window(window);
 	glfwMakeContextCurrent(window);
@@ -277,7 +284,21 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			LoadTextureMemory(facebook, FACEBOOK, ARRAYSIZE(facebook));
 			LoadTextureMemory(checkmark, CHECKMARK, ARRAYSIZE(checkmark));
 			LoadTextureMemory(wrong, WRONG, ARRAYSIZE(wrong));
-			LoadTextureMemory(menuback, MENUBACK, ARRAYSIZE(menuback));
+			LoadTextureMemory(menuback0, MENUBACK0, ARRAYSIZE(menuback0));
+			LoadTextureMemory(menuback1, MENUBACK1, ARRAYSIZE(menuback1));
+			LoadTextureMemory(menuback2, MENUBACK2, ARRAYSIZE(menuback2));
+			LoadTextureMemory(menuback3, MENUBACK3, ARRAYSIZE(menuback3));
+			LoadTextureMemory(menuback4, MENUBACK4, ARRAYSIZE(menuback4));
+			LoadTextureMemory(menuback5, MENUBACK5, ARRAYSIZE(menuback5));
+			LoadTextureMemory(menuback6, MENUBACK6, ARRAYSIZE(menuback6));
+			LoadTextureMemory(menuback7, MENUBACK7, ARRAYSIZE(menuback7));
+			LoadTextureMemory(menuback8, MENUBACK8, ARRAYSIZE(menuback8));
+			LoadTextureMemory(menuback9, MENUBACK9, ARRAYSIZE(menuback9));
+			LoadTextureMemory(menuback10, MENUBACK10, ARRAYSIZE(menuback10));
+			LoadTextureMemory(menuback11, MENUBACK11, ARRAYSIZE(menuback11));
+			LoadTextureMemory(menuback12, MENUBACK12, ARRAYSIZE(menuback12));
+			LoadTextureMemory(menuback13, MENUBACK13, ARRAYSIZE(menuback13));
+			LoadTextureMemory(menuback14, MENUBACK14, ARRAYSIZE(menuback14));
 			loadtexture = false;
 		}
 		glfwPollEvents();
@@ -285,13 +306,12 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
 		PlayRadio();
-		ColorChange();
 		Menu();
 		ImGui::Render();
 		int display_w, display_h;
 		glfwGetFramebufferSize(window, &display_w, &display_h);
 		glViewport(0, 0, display_w, display_h);
-		ImVec4 clear_color = ImVec4(0.f, 0.f, 0.f, 1.f);
+		ImVec4 clear_color = ImVec4(1.f, 1.f, 1.f, 1.f);
 		glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
 		glClear(GL_COLOR_BUFFER_BIT);
 		ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());

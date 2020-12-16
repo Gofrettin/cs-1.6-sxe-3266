@@ -33,9 +33,6 @@
     <ClInclude Include="imgui\stb_truetype.h">
       <Filter>imgui</Filter>
     </ClInclude>
-    <ClInclude Include="color.h">
-      <Filter>source</Filter>
-    </ClInclude>
     <ClInclude Include="image.h">
       <Filter>source</Filter>
     </ClInclude>
@@ -95,9 +92,6 @@
     </ClCompile>
     <ClCompile Include="imgui\imgui_impl_win32.cpp">
       <Filter>imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="color.cpp">
-      <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="image.cpp">
       <Filter>source</Filter>

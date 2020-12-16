@@ -17,5 +17,4 @@ using namespace std;
 #include "Injector.h"
 #include "inject.h"
 #include "image.h"
-#include "color.h"
 #include "radio.h"

@@ -13280,9 +13280,6 @@ bool ImGui::ColorPicker4(const char* label, float col[4], ImGuiColorEditFlags fl
     return value_changed;
 }
 
-extern float color_red;
-extern float color_green;
-extern float color_blue;
 // Horizontal/vertical separating line
 void ImGui::Separator()
 {
@@ -13319,7 +13316,7 @@ void ImGui::Separator()
     }
     float windowsize = bb.Max.x - bb.Min.x;
 	float ColorHSV[3];
-	ImGui::ColorConvertRGBtoHSV(color_red, color_green, color_blue, ColorHSV[0], ColorHSV[1], ColorHSV[2]);
+	ImGui::ColorConvertRGBtoHSV(0, 0, 0, ColorHSV[0], ColorHSV[1], ColorHSV[2]);
 	for (int i = 0; i < windowsize; i++)
 	{
 		ColorHSV[0] += 1.0f / windowsize;
