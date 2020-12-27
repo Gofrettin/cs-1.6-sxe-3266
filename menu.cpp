@@ -1451,8 +1451,8 @@ void DrawMenuChild(int total)
 	}
 	if (MenuTab == 1)
 	{
-		windowheight1 = 685;
-		windowheight2 = 642;
+		windowheight1 = 647;
+		windowheight2 = 621;
 		windowheight3 = 23;
 		for (model_aim_select_t Model_Selected : Model_Aim_Select)
 			windowheight3 += 21;
