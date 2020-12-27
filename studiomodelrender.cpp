@@ -166,7 +166,7 @@ void StudioCalcRotations( float pos[][3], vec4_t *q, mstudioseqdesc_t *pseqdesc,
 
 void Glow(cl_entity_s* ent, bool valident, float glow, float chams, float r, float g, float b, int width)
 {
-	if (valident && glow && CheckDrawEngine())
+	if (valident && glow && DrawVisuals && (!cvar.route_auto || cvar.route_draw_visual) && GetTickCount() - HudRedraw <= 100)
 	{
 		glDepthFunc(GL_GREATER);
 		glDisable(GL_DEPTH_TEST);
@@ -197,7 +197,7 @@ void Glow(cl_entity_s* ent, bool valident, float glow, float chams, float r, flo
 
 void Chams(cl_entity_s* ent, bool valident, float chams, float chamswall, float chams_r, float chams_g, float chams_b, float chamswall_r, float chamswall_g, float chamswall_b, float& coloring, float& coloring_r, float& coloring_g, float& coloring_b)
 {
-	if (valident && chams && CheckDrawEngine())
+	if (valident && chams && DrawVisuals && (!cvar.route_auto || cvar.route_draw_visual) && GetTickCount() - HudRedraw <= 100)
 	{
 		coloring = true;
 

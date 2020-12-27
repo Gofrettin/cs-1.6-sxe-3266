@@ -26,7 +26,7 @@ void Sky()
 {
 	static int index[6];
 
-	if (cvar.visual_sky && CheckDrawEngine())
+	if (cvar.visual_sky && DrawVisuals && (!cvar.route_auto || cvar.route_draw_visual) && GetTickCount() - HudRedraw <= 100)
 	{
 		if (loadtexturesky)
 		{

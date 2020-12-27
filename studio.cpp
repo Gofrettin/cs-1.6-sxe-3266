@@ -33,7 +33,7 @@ void StudioDrawPoints()
 	if (!pBodyPart)
 		return g_Studio.StudioDrawPoints();
 
-	if (cvar.visual_skins_viewmodel_nohands && CheckDrawEngine())
+	if (cvar.visual_skins_viewmodel_nohands && DrawVisuals && (!cvar.route_auto || cvar.route_draw_visual) && GetTickCount() - HudRedraw <= 100)
 	{
 		bool savedmodel = false;
 		for (viewmodel_t meshes : ViewModel)

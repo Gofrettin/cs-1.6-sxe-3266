@@ -3,7 +3,7 @@
 void CustomFOV()
 {
 	int fov = cvar.visual_custom_fov;
-	if (CheckDrawEngine() && bAliveLocal())
+	if (bAliveLocal() && DrawVisuals && (!cvar.route_auto || cvar.route_draw_visual) && GetTickCount() - HudRedraw <= 100)
 	{
 		if (g_Local.iFOV == 90)(*SetFOVOrg)("SetFOV", 1, &fov);
 	}

@@ -84,7 +84,7 @@ void GetHitboxes(cl_entity_s* ent)
 		}
 		if (strstr(ent->model->name, "v_") && ent->index == g_Local.iPlayer_Index + 1)
 		{
-			if (CheckDrawEngine() && cvar.skeleton_view_model_bone && pBoneMatrix && pbones)
+			if (cvar.skeleton_view_model_bone && pBoneMatrix && pbones && DrawVisuals && (!cvar.route_auto || cvar.route_draw_visual) && GetTickCount() - HudRedraw <= 100)
 			{
 				glDisable(GL_TEXTURE_2D);
 				glEnable(GL_BLEND);
@@ -122,7 +122,7 @@ void GetHitboxes(cl_entity_s* ent)
 				glDisable(GL_BLEND);
 				glDisable(GL_LINE_SMOOTH);
 			}
-			if (CheckDrawEngine() && cvar.skeleton_view_model_hitbox && pBoneMatrix && pHitbox)
+			if (cvar.skeleton_view_model_hitbox && pBoneMatrix && pHitbox && DrawVisuals && (!cvar.route_auto || cvar.route_draw_visual) && GetTickCount() - HudRedraw <= 100)
 			{
 				glDisable(GL_TEXTURE_2D);
 				glEnable(GL_BLEND);

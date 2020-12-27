@@ -73,12 +73,33 @@ void MenuHandle()
 {
 	static bool checkmenu = bShowMenu;
 	static bool checkchat = bInputActive;
+	static bool checkscreen = DrawVisuals;
+	bool checkdraw = GetTickCount() - HudRedraw <= 100;
+	static bool checkdrawhud = checkdraw;
+	if (checkscreen != DrawVisuals || checkdrawhud != checkdraw)
+	{
+		if (bShowMenu || bInputActive)
+		{
+			if (DrawVisuals && checkdraw)
+			{
+				ImGui::GetIO().MouseDrawCursor = true;
+				if (bInputActive)SetKeyboardFocus = true;
+				if (bShowMenu)changewindowfocus = true;
+			}
+			else
+				ImGui::GetIO().MouseDrawCursor = false;
+		}
+		checkscreen = DrawVisuals;
+		checkdrawhud = checkdraw;
+	}
 	if (checkmenu != bShowMenu || checkchat != bInputActive)
 	{
 		if (bShowMenu || bInputActive)
 		{
 			ImGui::GetIO().MouseDrawCursor = true;
 			g_pClient->IN_DeactivateMouse();
+			if (bInputActive)SetKeyboardFocus = true;
+			if (bShowMenu)changewindowfocus = true;
 		}
 		else
 		{
@@ -89,11 +110,10 @@ void MenuHandle()
 		checkmenu = bShowMenu;
 		checkchat = bInputActive;
 	}
-
-	POINT Point;
-	if ((bShowMenu || bInputActive) && ::GetCursorPos(&Point) && ::GetActiveWindow() == hGameWnd)
+	if ((bShowMenu || bInputActive) && ::GetActiveWindow() == hGameWnd)
 	{
-		if (CheckDraw() && Point.x == g_Engine.GetWindowCenterX() && Point.y == g_Engine.GetWindowCenterY())
+		POINT Point;
+		if (::GetCursorPos(&Point) && Point.x == g_Engine.GetWindowCenterX() && Point.y == g_Engine.GetWindowCenterY())
 			g_pClient->IN_DeactivateMouse();
 	}
 }
@@ -135,42 +155,27 @@ void HookImGui(HDC hdc)
 	//Credit to my kind friend BloodSharp for helping a noob <3
 	ColorChange();
 	ClearSound();
-	if (CheckDraw())
+	InistalizeImgui(hdc);
+	if (!bOldOpenGL)
+		ImGui_ImplOpenGL3_NewFrame();
+	else
+		ImGui_ImplOpenGL2_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
+	if (DrawVisuals && (!cvar.route_auto || cvar.route_draw_visual) && GetTickCount() - HudRedraw <= 100)
 	{
-		InistalizeImgui(hdc);
-		if (!bOldOpenGL)
-			ImGui_ImplOpenGL3_NewFrame();
-		else
-			ImGui_ImplOpenGL2_NewFrame();
-		ImGui_ImplWin32_NewFrame();
-		ImGui::NewFrame();
-
-		DrawFullScreenWindow(); 
+		DrawFullScreenWindow();
 		DrawOverview();
 		DrawKzWindows();
 		DrawMenuWindow();
-
-		ImGui::Render();
-		if (!bOldOpenGL)
-			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-		else
-			ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
 	}
+
+	ImGui::Render();
+	if (!bOldOpenGL)
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	else
+		ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
 	MenuHandle();
 	ClearHudKeys();
 	ClearDeque();
-}
-
-bool CheckDrawEngine()
-{
-	if (DrawVisuals && GetTickCount() - HudRedraw <= 100)
-		return true;
-	return false;
-}
-
-bool CheckDraw()
-{
-	if (GetTickCount() - HudRedraw <= 100)
-		return true;
-	return false;
 }

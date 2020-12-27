@@ -27,7 +27,7 @@ void APIENTRY hooked_glBegin(GLenum mode)
 	bool Weapon = ent && ent->model && (strstr(ent->model->name, "p_") || strstr(ent->model->name, "w_"));
 	bool View_Model = ent && ent->model && strstr(ent->model->name, "v_");
 
-	if (cvar.visual_wall && CheckDrawEngine())
+	if (cvar.visual_wall && DrawVisuals && (!cvar.route_auto || cvar.route_draw_visual) && GetTickCount() - HudRedraw <= 100)
 	{
 		if (Player || Weapon)
 			glDepthRange(0, 0.5);
@@ -35,7 +35,7 @@ void APIENTRY hooked_glBegin(GLenum mode)
 			glDepthRange(0.5, 1);
 	}
 
-	if (cvar.visual_lambert && (Player && !cvar.chams_player_glow || Weapon && !cvar.chams_world_glow || View_Model && !cvar.chams_view_model_glow) && CheckDrawEngine())
+	if (cvar.visual_lambert && (Player && !cvar.chams_player_glow || Weapon && !cvar.chams_world_glow || View_Model && !cvar.chams_view_model_glow) && DrawVisuals && (!cvar.route_auto || cvar.route_draw_visual) && GetTickCount() - HudRedraw <= 100)
 	{
 		if (mode == GL_TRIANGLE_STRIP)
 			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);

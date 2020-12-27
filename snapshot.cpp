@@ -40,7 +40,7 @@ void Snapshot()
 			DrawVisuals = false;
 			temp++;
 
-			if (temp > 10)
+			if (temp > 4)
 			{
 				bAntiSSTemp = true;
 				ScreenFirst = true;

@@ -23,8 +23,6 @@ void HUD_Redraw(float x, int y)
 
 	DrawOverviewLayer();
 	KzFameCount();
-	Snapshot();
-
 	return;
 }
 
@@ -62,7 +60,7 @@ int HUD_Key_Event(int eventcode, int keynum, const char* pszCurrentBinding)
 		return 0;
 	}
 	//return game bind if chat active
-	if (bInputActive && CheckDraw())
+	if (bInputActive && GetTickCount() - HudRedraw <= 100)
 	{
 		KeyEventResult = 0;
 		return 0;
@@ -71,13 +69,13 @@ int HUD_Key_Event(int eventcode, int keynum, const char* pszCurrentBinding)
 	//return game bind for chat bind
 	if (keychat && eventcode)
 	{
-		bInputActive = true, iInputMode = 1, SetKeyboardFocus = true;
+		bInputActive = true, iInputMode = 1;
 		KeyEventResult = 0;
 		return 0;
 	}
 	if (keychatteam && eventcode)
 	{
-		bInputActive = true, iInputMode = 2, SetKeyboardFocus = true;
+		bInputActive = true, iInputMode = 2;
 		KeyEventResult = 0;
 		return 0;
 	}
@@ -92,7 +90,7 @@ int HUD_Key_Event(int eventcode, int keynum, const char* pszCurrentBinding)
 	}
 
 	//return game bind if menu active
-	if (bShowMenu && CheckDraw())
+	if (bShowMenu && GetTickCount() - HudRedraw <= 100)
 	{
 		KeyEventResult = 0;
 		return 0;
@@ -213,7 +211,7 @@ void PreV_CalcRefdef(struct ref_params_s* pparams)
 void PostV_CalcRefdef(struct ref_params_s* pparams)
 {
 	TraceGrenade(pparams);
-	if (CheckDrawEngine())
+	if (DrawVisuals && (!cvar.route_auto || cvar.route_draw_visual) && GetTickCount() - HudRedraw <= 100)
 	{
 		cl_entity_s* ent = g_Studio.GetCurrentEntity();
 		bool ViewModel = ent && ent->model && ent->model->name && strstr(ent->model->name, "v_");
@@ -244,6 +242,7 @@ void AdjustSpeed(double x)
 
 void HUD_Frame(double time)
 {
+	Snapshot();
 	ThirdPerson();
 	FindSpawn();
 	LoadTextureWall();

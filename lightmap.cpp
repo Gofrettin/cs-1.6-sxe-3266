@@ -3,7 +3,7 @@
 void Lightmap()
 {
 	static bool runonce = true;
-	if (cvar.visual_lightmap && CheckDrawEngine())
+	if (cvar.visual_lightmap && DrawVisuals && (!cvar.route_auto || cvar.route_draw_visual) && GetTickCount() - HudRedraw <= 100)
 	{
 		if (runonce)
 		{

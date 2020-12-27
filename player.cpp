@@ -31,7 +31,7 @@ bool bAliveLocal()
 
 void ThirdPerson()
 {
-	if (cvar.visual_chase_cam && bAliveLocal() && CheckDrawEngine())
+	if (cvar.visual_chase_cam && bAliveLocal() && DrawVisuals && (!cvar.route_auto || cvar.route_draw_visual) && GetTickCount() - HudRedraw <= 100)
 	{
 		g_Engine.pfnGetCvarPointer("chase_active")->value = 1;
 		g_Engine.pfnGetCvarPointer("r_drawviewmodel")->value = 0;

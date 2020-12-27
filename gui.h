@@ -3,7 +3,5 @@
 
 extern bool bInitializeImGui;
 void HookImGui(HDC hdc);
-bool CheckDrawEngine();
-bool CheckDraw();
 
 #endif

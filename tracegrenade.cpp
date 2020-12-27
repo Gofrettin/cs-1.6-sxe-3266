@@ -11,7 +11,8 @@ void TraceGrenade(ref_params_s* pparams)
 
 		float flGravity = g_Local.flMoveGravity / SVGRAVITY;
 
-		Vector vecAngles = pparams->viewangles;
+		Vector vecAngles;
+		g_Engine.GetViewAngles(vecAngles);
 		if (vecAngles[0] < 0) 
 			vecAngles[0] = -10 + vecAngles[0] * ((90.f - 10.f) / 90.0f);
 		else 
@@ -21,7 +22,7 @@ void TraceGrenade(ref_params_s* pparams)
 		if (flVel > 500)
 			flVel = 500;
 
-		vecForward = pparams->forward;
+		g_Engine.pfnAngleVectors(vecAngles, vecForward, NULL, NULL);
 		vecStart = g_Local.vEye + vecForward * 16;
 		vecForward = (vecForward * flVel) + g_Local.vVelocity;
 		

@@ -225,7 +225,7 @@ void WallRun()
 	if (!ent || !ent->model || !gamerunning)
 		return;
 
-	if (CheckDrawEngine() && cvar.visual_skins_wall)
+	if (cvar.visual_skins_wall && DrawVisuals && (!cvar.route_auto || cvar.route_draw_visual) && GetTickCount() - HudRedraw <= 100)
 	{
 		for (unsigned int i = 0; i < ent->model->numtextures; i++)
 		{

@@ -19,7 +19,9 @@ extern deque<model_aim_t> Model_Aim;
 
 extern GLuint texture_id[2048];
 extern bool keysmenu[256];
-extern bool bShowMenu;
+extern bool bShowMenu; 
+extern float radiusy;
+extern bool changewindowfocus;
 char* KeyEventChar(int Key);
 void DrawMenuWindow();
 void EaseMenu(float& menuspeed, int index, float windowsize, int speed, bool showmenu);
