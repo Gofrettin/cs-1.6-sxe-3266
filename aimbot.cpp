@@ -74,6 +74,20 @@ void TriggerTarget(struct usercmd_s* cmd, playeraim_t Aim, float& m_flBestFOV, D
 		if (!strstr(Model_Selected.checkmodel, Aim.modelname))
 			continue;
 
+		bool skip = false;
+		for (playeraimlegit_t AimLegit : PlayerAimLegit)
+		{
+			if (!strstr(AimLegit.checkmodel, Model_Selected.checkmodel))
+				continue;
+			if (AimLegit.numhitbox != Model_Selected.numhitbox)
+				continue;
+			if (AimLegit.m_iWeaponID != g_Local.weapon.m_iWeaponID)
+				continue;
+			skip = true;
+		}
+		if (skip)
+			continue;
+
 		hitboxselected = true;
 
 		bool bHitboxPointsVisible[8];
@@ -326,47 +340,47 @@ void LegitSelect(playeraim_t Aim, Vector vecFOV, float& flBestFOV, float flSpeed
 	bool hitboxselected = false;
 	for (model_aim_select_t Model_Selected : Model_Aim_Select)
 	{
-		if (strstr(Model_Selected.checkmodel, Aim.modelname))
+		if (!strstr(Model_Selected.checkmodel, Aim.modelname))
+			continue;
+
+		bool skip = false;
+		for (playeraimlegit_t AimLegit : PlayerAimLegit)
 		{
-			bool skip = false;
-			for (playeraimlegit_t AimLegit : PlayerAimLegit)
-			{
-				if (!strstr(AimLegit.checkmodel, Model_Selected.checkmodel))
-					continue;
-				if (AimLegit.numhitbox != Model_Selected.numhitbox)
-					continue;
-				if (AimLegit.m_iWeaponID != g_Local.weapon.m_iWeaponID)
-					continue;
-				skip = true;
-			}
-			if (skip)
+			if (!strstr(AimLegit.checkmodel, Model_Selected.checkmodel))
 				continue;
+			if (AimLegit.numhitbox != Model_Selected.numhitbox)
+				continue;
+			if (AimLegit.m_iWeaponID != g_Local.weapon.m_iWeaponID)
+				continue;
+			skip = true;
+		}
+		if (skip)
+			continue;
 
-			hitboxselected = true;
+		hitboxselected = true;
 
-			pmtrace_t tr;
+		pmtrace_t tr;
 
-			EV_SetTraceHull(2);
+		EV_SetTraceHull(2);
 
-			if (cvar.bypass_trace_legit)
-				EV_PlayerTrace(g_Local.vEye, Aim.PlayerAimHitbox[Model_Selected.numhitbox].Hitbox, PM_WORLD_ONLY, -1, &tr);
-			else
-				EV_PlayerTrace(g_Local.vEye, Aim.PlayerAimHitbox[Model_Selected.numhitbox].Hitbox, PM_GLASS_IGNORE, -1, &tr);
+		if (cvar.bypass_trace_legit)
+			EV_PlayerTrace(g_Local.vEye, Aim.PlayerAimHitbox[Model_Selected.numhitbox].Hitbox, PM_WORLD_ONLY, -1, &tr);
+		else
+			EV_PlayerTrace(g_Local.vEye, Aim.PlayerAimHitbox[Model_Selected.numhitbox].Hitbox, PM_GLASS_IGNORE, -1, &tr);
 
-			int detect = g_Engine.pEventAPI->EV_IndexFromTrace(&tr);
+		int detect = g_Engine.pEventAPI->EV_IndexFromTrace(&tr);
 
-			if ((cvar.bypass_trace_legit && tr.fraction == 1 && !detect) || (!cvar.bypass_trace_legit && detect == Aim.ent->index))
+		if ((cvar.bypass_trace_legit && tr.fraction == 1 && !detect) || (!cvar.bypass_trace_legit && detect == Aim.ent->index))
+		{
+			float fov = vecFOV.AngleBetween(Aim.PlayerAimHitbox[Model_Selected.numhitbox].Hitbox - g_Local.vEye);
+			if (fov < flBestFOV)
 			{
-				float fov = vecFOV.AngleBetween(Aim.PlayerAimHitbox[Model_Selected.numhitbox].Hitbox - g_Local.vEye);
-				if (fov < flBestFOV)
-				{
-					flBestFOV = fov;
-					iTargetLegit = Aim.ent->index;
-					iHitboxLegit = Model_Selected.numhitbox;
-					vAimOriginLegit = Aim.PlayerAimHitbox[Model_Selected.numhitbox].Hitbox;
-					if (flSpeedScaleFov > 0 && flSpeedScaleFov <= 100 && g_Local.vPunchangle.IsZero() && !isnan(Aim.PlayerAimHitbox[Model_Selected.numhitbox].HitboxFOV))
-						flSpeed = flSpeed - (((Aim.PlayerAimHitbox[Model_Selected.numhitbox].HitboxFOV * (flSpeed / m_flCurrentFOV)) * flSpeedScaleFov) / 100);
-				}
+				flBestFOV = fov;
+				iTargetLegit = Aim.ent->index;
+				iHitboxLegit = Model_Selected.numhitbox;
+				vAimOriginLegit = Aim.PlayerAimHitbox[Model_Selected.numhitbox].Hitbox;
+				if (flSpeedScaleFov > 0 && flSpeedScaleFov <= 100 && g_Local.vPunchangle.IsZero() && !isnan(Aim.PlayerAimHitbox[Model_Selected.numhitbox].HitboxFOV))
+					flSpeed = flSpeed - (((Aim.PlayerAimHitbox[Model_Selected.numhitbox].HitboxFOV * (flSpeed / m_flCurrentFOV)) * flSpeedScaleFov) / 100);
 			}
 		}
 	}
@@ -609,16 +623,31 @@ void LegitAimbot(struct usercmd_s* cmd)
 				bool hitboxselected = false;
 				for (model_aim_select_t Model_Selected : Model_Aim_Select)
 				{
-					if (strstr(Model_Selected.checkmodel, Aim.modelname))
+					if (!strstr(Model_Selected.checkmodel, Aim.modelname))
+						continue;
+
+					bool skip = false;
+					for (playeraimlegit_t AimLegit : PlayerAimLegit)
 					{
-						hitboxselected = true;
-						for (unsigned int i = 0; i < 12; i++)
+						if (!strstr(AimLegit.checkmodel, Model_Selected.checkmodel))
+							continue;
+						if (AimLegit.numhitbox != Model_Selected.numhitbox)
+							continue;
+						if (AimLegit.m_iWeaponID != g_Local.weapon.m_iWeaponID)
+							continue;
+						skip = true;
+					}
+					if (skip)
+						continue;
+
+					hitboxselected = true;
+
+					for (unsigned int i = 0; i < 12; i++)
+					{
+						if (IsBoxIntersectingRay(Aim.PlayerAimHitbox[Model_Selected.numhitbox].HitboxMulti[SkeletonHitboxMatrix[i][0]], Aim.PlayerAimHitbox[Model_Selected.numhitbox].HitboxMulti[SkeletonHitboxMatrix[i][1]], g_Local.vEye, vecSpreadDir))
 						{
-							if (IsBoxIntersectingRay(Aim.PlayerAimHitbox[Model_Selected.numhitbox].HitboxMulti[SkeletonHitboxMatrix[i][0]], Aim.PlayerAimHitbox[Model_Selected.numhitbox].HitboxMulti[SkeletonHitboxMatrix[i][1]], g_Local.vEye, vecSpreadDir))
-							{
-								bBlock = false;
-								break;
-							}
+							bBlock = false;
+							break;
 						}
 					}
 				}
@@ -672,32 +701,47 @@ void KnifeSelect(playeraim_t Aim, float& flDist)
 	bool hitboxselected = false;
 	for (model_aim_select_t Model_Selected : Model_Aim_Select)
 	{
-		if (strstr(Model_Selected.checkmodel, Aim.modelname))
+		if (!strstr(Model_Selected.checkmodel, Aim.modelname))
+			continue;
+
+		bool skip = false;
+		for (playeraimlegit_t AimLegit : PlayerAimLegit)
 		{
-			hitboxselected = true;
-			pmtrace_t tr;
+			if (!strstr(AimLegit.checkmodel, Model_Selected.checkmodel))
+				continue;
+			if (AimLegit.numhitbox != Model_Selected.numhitbox)
+				continue;
+			if (AimLegit.m_iWeaponID != g_Local.weapon.m_iWeaponID)
+				continue;
+			skip = true;
+		}
+		if (skip)
+			continue;
 
-			EV_SetTraceHull(2);
+		hitboxselected = true;
 
-			if (cvar.bypass_trace_knife)
-				EV_PlayerTrace(g_Local.vEye, Aim.PlayerAimHitbox[Model_Selected.numhitbox].Hitbox, PM_WORLD_ONLY, -1, &tr);
-			else
-				EV_PlayerTrace(g_Local.vEye, Aim.PlayerAimHitbox[Model_Selected.numhitbox].Hitbox, PM_GLASS_IGNORE, -1, &tr);
+		pmtrace_t tr;
 
-			int detect = g_Engine.pEventAPI->EV_IndexFromTrace(&tr);
+		EV_SetTraceHull(2);
 
-			if ((cvar.bypass_trace_knife && tr.fraction == 1 && !detect) || (!cvar.bypass_trace_knife && detect == Aim.ent->index))
+		if (cvar.bypass_trace_knife)
+			EV_PlayerTrace(g_Local.vEye, Aim.PlayerAimHitbox[Model_Selected.numhitbox].Hitbox, PM_WORLD_ONLY, -1, &tr);
+		else
+			EV_PlayerTrace(g_Local.vEye, Aim.PlayerAimHitbox[Model_Selected.numhitbox].Hitbox, PM_GLASS_IGNORE, -1, &tr);
+
+		int detect = g_Engine.pEventAPI->EV_IndexFromTrace(&tr);
+
+		if ((cvar.bypass_trace_knife && tr.fraction == 1 && !detect) || (!cvar.bypass_trace_knife && detect == Aim.ent->index))
+		{
+			if (Aim.PlayerAimHitbox[Model_Selected.numhitbox].HitboxFOV <= cvar.knifebot_fov)
 			{
-				if (Aim.PlayerAimHitbox[Model_Selected.numhitbox].HitboxFOV <= cvar.knifebot_fov)
+				if (Aim.PlayerAimHitbox[Model_Selected.numhitbox].Hitbox.Distance(g_Local.vEye) < flDist)
 				{
-					if (Aim.PlayerAimHitbox[Model_Selected.numhitbox].Hitbox.Distance(g_Local.vEye) < flDist)
-					{
-						flDist = Aim.PlayerAimHitbox[Model_Selected.numhitbox].Hitbox.Distance(g_Local.vEye);
-						iTargetKnife = Aim.ent->index;
-						vAimOriginKnife = Aim.PlayerAimHitbox[Model_Selected.numhitbox].Hitbox;
-						iHitboxKnife = Model_Selected.numhitbox;
-						break;
-					}
+					flDist = Aim.PlayerAimHitbox[Model_Selected.numhitbox].Hitbox.Distance(g_Local.vEye);
+					iTargetKnife = Aim.ent->index;
+					vAimOriginKnife = Aim.PlayerAimHitbox[Model_Selected.numhitbox].Hitbox;
+					iHitboxKnife = Model_Selected.numhitbox;
+					break;
 				}
 			}
 		}
@@ -1236,6 +1280,20 @@ void TriggerDrawTarget(playeraim_t Aim)
 	for (model_aim_select_t Model_Selected : Model_Aim_Select)
 	{
 		if (!strstr(Model_Selected.checkmodel, Aim.modelname))
+			continue;
+
+		bool skip = false;
+		for (playeraimlegit_t AimLegit : PlayerAimLegit)
+		{
+			if (!strstr(AimLegit.checkmodel, Model_Selected.checkmodel))
+				continue;
+			if (AimLegit.numhitbox != Model_Selected.numhitbox)
+				continue;
+			if (AimLegit.m_iWeaponID != g_Local.weapon.m_iWeaponID)
+				continue;
+			skip = true;
+		}
+		if (skip)
 			continue;
 
 		hitboxselected = true;

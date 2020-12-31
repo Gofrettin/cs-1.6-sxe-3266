@@ -3,5 +3,7 @@
 
 void SaveHitbox();
 void LoadHitbox();
+void LoadHitboxLegit();
+void SaveHitboxLegit();
 
 #endif

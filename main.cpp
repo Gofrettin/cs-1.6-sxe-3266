@@ -96,6 +96,7 @@ void InstallCheat()
 	InitSound();
 	InitOpenGL();
 	LoadHitbox();
+	LoadHitboxLegit();
 }
 
 BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)

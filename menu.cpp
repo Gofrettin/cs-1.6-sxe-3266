@@ -561,6 +561,26 @@ void MenuLegit3()
 {
 	ImGui::Text("Hitboxes"), ImGui::Separator();
 
+	if (ImGui::Button("Load Hitbox"))LoadHitboxLegit();
+	ImGui::SameLine();
+	if (ImGui::Button("Save Hitbox"))SaveHitboxLegit();
+	ImGui::SameLine();
+	ImVec4 prevColor = ImGui::GetStyle().Colors[ImGuiCol_Text];
+	ImGui::GetStyle().Colors[ImGuiCol_Text] = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
+	if (ImGui::Button("Clear Current Weapon"))
+	{
+		deque<int> Hitboxes;
+		for (unsigned int i = 0; i < PlayerAimLegit.size(); i++)
+		{
+			if (PlayerAimLegit[i].m_iWeaponID != CheckWeapon(cvar.menu_legit_global_section, cvar.menu_legit_sub_section))
+				continue;
+			Hitboxes.push_back(i);
+		}
+		for (int x = Hitboxes.size() - 1; x >= 0; x--)
+			PlayerAimLegit.erase(PlayerAimLegit.begin() + Hitboxes[x]);
+	}
+	ImGui::GetStyle().Colors[ImGuiCol_Text] = prevColor;
+
 	for (unsigned int x = 0; x < Model_Aim_Select.size(); x++)
 	{
 		float checksave = 1;
@@ -1311,7 +1331,9 @@ void MenuRoute2()
 void MenuSnapshot()
 {
 	ImGui::Text("Clean Snapshot"), ImGui::Separator();
-	ImGui::Checkbox("Save Snapshot", &cvar.snapshot); 
+	
+	ImGui::Checkbox("Save Snapshot To Memory", &cvar.snapshot_memory);
+	if (cvar.snapshot_memory)ImGui::Checkbox("Save Snapshot To Game", &cvar.snapshot_game);
 	ImGui::Text("Snapshot Time");
 	SliderFloat("Snapshot Time##1", &cvar.snapshot_time, 1.f, 60.f, "%.0f sec");
 }
@@ -1453,7 +1475,7 @@ void DrawMenuChild(int total)
 	{
 		windowheight1 = 647;
 		windowheight2 = 621;
-		windowheight3 = 23;
+		windowheight3 = 44;
 		for (model_aim_select_t Model_Selected : Model_Aim_Select)
 			windowheight3 += 21;
 	}
@@ -1570,7 +1592,9 @@ void DrawMenuChild(int total)
 	}
 	if (MenuTab == 11)
 	{
-		windowheight1 = 82;
+		windowheight1 = 82; 
+		if (cvar.snapshot_memory)
+			windowheight1 += 21;
 	}
 	if (MenuTab == 12)
 	{

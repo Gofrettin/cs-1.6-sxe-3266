@@ -7,7 +7,7 @@ DWORD dwSize, time_scr;
 
 void __stdcall m_glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLvoid* pixels)
 {
-	if (ScreenFirst || !cvar.snapshot)
+	if (ScreenFirst || !cvar.snapshot_memory)
 	{
 		dwSize = (width * height) * 3;
 		BufferScreen = (PBYTE)malloc(dwSize);
@@ -25,7 +25,7 @@ void Snapshot()
 	if (!bInitializeImGui)
 		return;
 
-	if (cvar.snapshot)
+	if (cvar.snapshot_memory)
 	{
 		if (bAntiSSTemp)
 		{
@@ -49,6 +49,7 @@ void Snapshot()
 				PBYTE buf = (PBYTE)malloc(sz);
 				glReadPixels(0, 0, ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y, GL_RGB, GL_UNSIGNED_BYTE, buf);
 				free((PBYTE)buf);
+				if (cvar.snapshot_game)g_Engine.pfnClientCmd("snapshot");
 			}
 
 		}
