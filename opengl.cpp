@@ -18,7 +18,6 @@ typedef BOOL(APIENTRY* wglSwapBuffers_t)(HDC);
 typedef void (APIENTRY* glFrustum_t)(GLdouble, GLdouble, GLdouble, GLdouble, GLdouble, GLdouble);
 typedef void (APIENTRY* glBlendFunc_t)(GLenum, GLenum);
 typedef void (APIENTRY* glColor4f_t)(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
-typedef void (APIENTRY* glReadPixels_t)(GLint, GLint, GLsizei, GLsizei, GLenum, GLenum, GLvoid*);
 
 glBegin_t			pglBegin;
 glPopMatrix_t	 	pglPopMatrix;
@@ -38,7 +37,6 @@ glShadeModel_t	 	pglShadeModel;
 glFrustum_t         pglFrustum;
 glBlendFunc_t       pglBlendFunc;
 glColor4f_t         pglColor4f;
-glReadPixels_t      pglReadPixels;
 
 void APIENTRY hooked_glBegin(GLenum mode)
 {
@@ -192,21 +190,6 @@ void APIENTRY hooked_glBlendFunc(GLenum sfactor, GLenum dfactor)
 	pglBlendFunc(sfactor, dfactor);
 }
 
-void APIENTRY hooked_glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLvoid* pixels)
-{
-	if (ScreenFirst || !cvar.snapshot_memory)
-	{
-		dwSize = (width * height) * 3;
-		BufferScreen = (PBYTE)malloc(dwSize);
-		pglReadPixels(x, y, width, height, format, type, pixels);
-		memcpy(BufferScreen, pixels, dwSize);
-		DrawVisuals = true;
-		ScreenFirst = false;
-		return;
-	}
-	memcpy(pixels, BufferScreen, dwSize);
-}
-
 void CodeWalk(DWORD dwStartAddress, DWORD dwEndAddress)
 {
 	for (DWORD dwCurrentAddress = dwStartAddress; dwCurrentAddress <= dwEndAddress - 0x6; dwCurrentAddress += 0x6)
@@ -300,11 +283,6 @@ void CodeWalk(DWORD dwStartAddress, DWORD dwEndAddress)
 		{
 			pglVertex3f = (glVertex3f_t)* pdwTableAddress;
 			*pdwTableAddress = (DWORD)& hooked_glVertex3f;
-		}
-		else if (*pdwTableAddress == (DWORD)GetProcAddress(hmOpenGL, "glReadPixels"))
-		{
-			pglReadPixels = (glReadPixels_t)* pdwTableAddress;
-			*pdwTableAddress = (DWORD)& hooked_glReadPixels;
 		}
 	}
 }

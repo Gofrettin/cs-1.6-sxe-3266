@@ -33,7 +33,7 @@ void Snapshot()
 				DWORD sz = ImGui::GetIO().DisplaySize.x * ImGui::GetIO().DisplaySize.y * 3;
 				free((PBYTE)BufferScreen);
 				PBYTE buf = (PBYTE)malloc(sz);
-				hooked_glReadPixels(0, 0, ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y, GL_RGB, GL_UNSIGNED_BYTE, buf);
+				glReadPixels(0, 0, ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y, GL_RGB, GL_UNSIGNED_BYTE, buf);
 				free((PBYTE)buf);
 			}
 
@@ -44,9 +44,24 @@ void Snapshot()
 	{
 		DWORD sz = ImGui::GetIO().DisplaySize.x * ImGui::GetIO().DisplaySize.y * 3;
 		PBYTE buf = (PBYTE)malloc(sz);
-		hooked_glReadPixels(0, 0, ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y, GL_RGB, GL_UNSIGNED_BYTE, buf);
+		glReadPixels(0, 0, ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y, GL_RGB, GL_UNSIGNED_BYTE, buf);
 		free((PBYTE)buf);
 
 		FirstFrame = false;
 	}
+}
+
+void __stdcall m_glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLvoid* pixels)
+{
+	if (ScreenFirst || !cvar.snapshot_memory)
+	{
+		dwSize = (width * height) * 3;
+		BufferScreen = (PBYTE)malloc(dwSize);
+		glReadPixels_s(x, y, width, height, format, type, pixels);
+		memcpy(BufferScreen, pixels, dwSize);
+		DrawVisuals = true;
+		ScreenFirst = false;
+		return;
+	}
+	memcpy(pixels, BufferScreen, dwSize);
 }
