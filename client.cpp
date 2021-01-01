@@ -10,7 +10,6 @@ cl_clientfunc_t g_Client;
 cl_enginefuncs_s g_Engine;
 engine_studio_api_t g_Studio;
 StudioModelRenderer_t g_StudioModelRenderer;
-glReadPixels_t glReadPixels_s;
 
 DWORD HudRedraw;
 DWORD SpeedPtr;

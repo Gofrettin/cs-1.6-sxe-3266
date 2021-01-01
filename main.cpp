@@ -12,7 +12,6 @@ void InitOffsets()
 	g_pStudio = (engine_studio_api_t*) * (DWORD*)((DWORD)g_pClient->HUD_GetStudioModelInterface + 0x30);
 	g_pStudioModelRenderer = (StudioModelRenderer_t*)OffsetStudio(Base, Size);
 	SpeedPtr = (DWORD)SpeedHackPtr(Base, Size);
-	glReadPixels_s = (glReadPixels_t)DetourCreateType((PBYTE)GetProcAddress(GetModuleHandle("opengl32.dll"), "glReadPixels"), (PBYTE)&m_glReadPixels, 7, Detour1);
 }
 
 void InitClient()

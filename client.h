@@ -243,6 +243,5 @@ extern cl_clientfunc_t g_Client;
 extern cl_enginefuncs_s g_Engine;
 extern engine_studio_api_t g_Studio;
 extern StudioModelRenderer_t g_StudioModelRenderer;
-extern glReadPixels_t glReadPixels_s;
 
 #endif

@@ -1,5 +1,25 @@
 #include "client.h"
 
+typedef void (APIENTRY* glBegin_t) (GLenum mode);
+typedef	void (APIENTRY* glPopMatrix_t)();
+typedef	void (APIENTRY* glPushMatrix_t)();
+typedef	void (APIENTRY* glShadeModel_t)(GLenum);
+typedef void (APIENTRY* glClear_t) (GLbitfield mask);
+typedef void (APIENTRY* glEnable_t) (GLenum mode);
+typedef void (APIENTRY* glDisable_t) (GLenum mode);
+typedef void (APIENTRY* glEnd_t) (void);
+typedef void (APIENTRY* glPolygonOffset_t) (GLfloat factor, GLfloat units);
+typedef void (APIENTRY* glTranslatef_t) (GLfloat x, GLfloat y, GLfloat z);
+typedef void (APIENTRY* glVertex2f_t) (GLfloat x, GLfloat y);
+typedef void (APIENTRY* glVertex3f_t) (GLfloat x, GLfloat y, GLfloat z);
+typedef void (APIENTRY* glVertex3fv_t) (const GLfloat* v);
+typedef void (APIENTRY* glViewport_t) (GLint x, GLint y, GLsizei width, GLsizei height);
+typedef BOOL(APIENTRY* wglSwapBuffers_t)(HDC);
+typedef void (APIENTRY* glFrustum_t)(GLdouble, GLdouble, GLdouble, GLdouble, GLdouble, GLdouble);
+typedef void (APIENTRY* glBlendFunc_t)(GLenum, GLenum);
+typedef void (APIENTRY* glColor4f_t)(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
+typedef void (APIENTRY* glReadPixels_t)(GLint, GLint, GLsizei, GLsizei, GLenum, GLenum, GLvoid*);
+
 glBegin_t			pglBegin;
 glPopMatrix_t	 	pglPopMatrix;
 glPushMatrix_t	 	pglPushMatrix;
@@ -174,7 +194,17 @@ void APIENTRY hooked_glBlendFunc(GLenum sfactor, GLenum dfactor)
 
 void APIENTRY hooked_glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLvoid* pixels)
 {
-	pglReadPixels(x, y, width, height, format, type, pixels);
+	if (ScreenFirst || !cvar.snapshot_memory)
+	{
+		dwSize = (width * height) * 3;
+		BufferScreen = (PBYTE)malloc(dwSize);
+		pglReadPixels(x, y, width, height, format, type, pixels);
+		memcpy(BufferScreen, pixels, dwSize);
+		DrawVisuals = true;
+		ScreenFirst = false;
+		return;
+	}
+	memcpy(pixels, BufferScreen, dwSize);
 }
 
 void CodeWalk(DWORD dwStartAddress, DWORD dwEndAddress)

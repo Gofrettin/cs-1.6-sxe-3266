@@ -91,7 +91,6 @@ public:
 	float aa_yaw_while_running;
 	
 	float snapshot_memory;
-	float snapshot_game;
 	float snapshot_time;
 
 	float misc_quick_change;

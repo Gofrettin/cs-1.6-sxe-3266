@@ -1333,7 +1333,6 @@ void MenuSnapshot()
 	ImGui::Text("Clean Snapshot"), ImGui::Separator();
 	
 	ImGui::Checkbox("Save Snapshot To Memory", &cvar.snapshot_memory);
-	if (cvar.snapshot_memory)ImGui::Checkbox("Save Snapshot To Game", &cvar.snapshot_game);
 	ImGui::Text("Snapshot Time");
 	SliderFloat("Snapshot Time##1", &cvar.snapshot_time, 1.f, 60.f, "%.0f sec");
 }
@@ -1593,8 +1592,6 @@ void DrawMenuChild(int total)
 	if (MenuTab == 11)
 	{
 		windowheight1 = 82; 
-		if (cvar.snapshot_memory)
-			windowheight1 += 21;
 	}
 	if (MenuTab == 12)
 	{
